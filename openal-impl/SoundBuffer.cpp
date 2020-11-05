@@ -112,7 +112,7 @@ bool SoundBuffer::removeSoundEffect(const ALuint& buffer)
 			++it;
 		}
 	}
-	return false;  // counldn't find to remove
+	return false;  // couldn't find to remove
 }
 
 
