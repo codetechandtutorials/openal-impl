@@ -140,11 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MusicBuffer.cpp" />
     <ClCompile Include="SoundBuffer.cpp" />
     <ClCompile Include="SoundDevice.cpp" />
     <ClCompile Include="SoundSource.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MusicBuffer.h" />
     <ClInclude Include="SoundBuffer.h" />
     <ClInclude Include="SoundDevice.h" />
     <ClInclude Include="SoundSource.h" />
