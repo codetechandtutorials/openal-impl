@@ -5,6 +5,7 @@ class SoundDevice
 {
 public:
 	static SoundDevice* get();
+	static void init();
 
 private:
 	SoundDevice();
