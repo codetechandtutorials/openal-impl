@@ -1,0 +1,3 @@
+[submodule "openal-impl/MainLoop"]
+	path = openal-impl/MainLoop
+	url = https://github.com/mattearly/MainLoop
