@@ -5,12 +5,15 @@ class MusicBuffer
 {
 public:
 	void Play();
-	//void Pause();
-	//void Stop();
+	void Pause();
+	void Stop();
+	void Resume();
 
 	void UpdateBufferStream();
 
 	ALint getSource();
+
+	bool isPlaying();
 
 	MusicBuffer(const char* filename);
 	~MusicBuffer();

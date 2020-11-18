@@ -1,15 +1,24 @@
-#include "SoundBuffer.h"
+#include "SoundEffectsLibrary.h"
 #include <sndfile.h>
 #include <inttypes.h>
 #include <AL\alext.h>
 
-SoundBuffer* SoundBuffer::get()
+/// <summary>
+/// Static class access.
+/// </summary>
+/// <returns>A pointer to the only instantiation allowed.</returns>
+SoundEffectsLibrary* SoundEffectsLibrary::Get()
 {
-	static SoundBuffer* sndbuf = new SoundBuffer();
+	static SoundEffectsLibrary* sndbuf = new SoundEffectsLibrary();
 	return sndbuf;
 }
 
-ALuint SoundBuffer::addSoundEffect(const char* filename)
+/// <summary>
+/// Loads the sound file into memory.
+/// </summary>
+/// <param name="filename">path to the file to load</param>
+/// <returns>access id</returns>
+ALuint SoundEffectsLibrary::Load(const char* filename)
 {
 
 	ALenum err, format;
@@ -95,7 +104,12 @@ ALuint SoundBuffer::addSoundEffect(const char* filename)
 	return buffer;
 }
 
-bool SoundBuffer::removeSoundEffect(const ALuint& buffer)
+/// <summary>
+/// Unloads the sound file from memory.
+/// </summary>
+/// <param name="buffer"></param>
+/// <returns></returns>
+bool SoundEffectsLibrary::UnLoad(const ALuint& buffer)
 {
 	auto it = p_SoundEffectBuffers.begin();
 	while (it != p_SoundEffectBuffers.end())
@@ -115,14 +129,18 @@ bool SoundBuffer::removeSoundEffect(const ALuint& buffer)
 	return false;  // couldn't find to remove
 }
 
-
-SoundBuffer::SoundBuffer()
+/// <summary>
+/// Class initialization.
+/// </summary>
+SoundEffectsLibrary::SoundEffectsLibrary()
 {
 	p_SoundEffectBuffers.clear();
-
 }
 
-SoundBuffer::~SoundBuffer()
+/// <summary>
+/// Class Destructor. Removes all loaded sounds from memory.
+/// </summary>
+SoundEffectsLibrary::~SoundEffectsLibrary()
 {
 	alDeleteBuffers(p_SoundEffectBuffers.size(), p_SoundEffectBuffers.data());
 

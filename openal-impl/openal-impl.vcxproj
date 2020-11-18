@@ -141,15 +141,16 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MusicBuffer.cpp" />
-    <ClCompile Include="SoundBuffer.cpp" />
+    <ClCompile Include="SoundEffectsLibrary.cpp" />
     <ClCompile Include="SoundDevice.cpp" />
-    <ClCompile Include="SoundSource.cpp" />
+    <ClCompile Include="SoundEffectsPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MainLoop\MainLoop.h" />
     <ClInclude Include="MusicBuffer.h" />
-    <ClInclude Include="SoundBuffer.h" />
+    <ClInclude Include="SoundEffectsLibrary.h" />
     <ClInclude Include="SoundDevice.h" />
-    <ClInclude Include="SoundSource.h" />
+    <ClInclude Include="SoundEffectsPlayer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

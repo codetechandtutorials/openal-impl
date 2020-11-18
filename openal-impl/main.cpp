@@ -1,44 +1,69 @@
 #include "SoundDevice.h"
-#include "SoundBuffer.h"
-#include "SoundSource.h"
+#include "SoundEffectsLibrary.h"
+#include "SoundEffectsPlayer.h"
 #include <iostream>
 #include "MusicBuffer.h"
+#include "MainLoop/MainLoop.h"  // for looping
+#include <Windows.h>  // for keyboard press
 
 int main()
 {
-	std::cout << "starting...\n";
+	std::cout << "initializing sound device...\n";
+	SoundDevice::Init();
+	static SoundEffectsPlayer effectsPlayer1;
+	static uint32_t sound1 = SE_LOAD("../res/spellsounds/spell.ogg");
+	static SoundEffectsPlayer effectsPlayer2;
+	static uint32_t sound2 = SE_LOAD("../res/spellsounds/magicfail.ogg");
 
-	SoundDevice::init();
+	static MusicBuffer myMusic("../res/music/TownTheme.wav");
 
-	uint32_t sound1 = SoundBuffer::get()->addSoundEffect("../res/spellsounds/spell.ogg");
-	uint32_t sound2 = SoundBuffer::get()->addSoundEffect("../res/spellsounds/magicfail.ogg");
+	static bool keepRunning = true;
+	MainLoop::Get()->SetRunCondition([]() {return keepRunning; });
+	MainLoop::Get()->AddToOnUpdate([](float dt) {
+		static float healcooldown = 3;
+		healcooldown += dt;
+		static float failcooldown = .8f;
+		failcooldown += dt;
+		if (GetKeyState('A') & 0x8000)
+		{
+			if (healcooldown > 3) {
+				effectsPlayer1.Play(sound1);
+				healcooldown = 0;
+				failcooldown = 0;
+			}
+			else if (effectsPlayer1.isPlaying() && failcooldown > .8f) {
+				effectsPlayer2.Play(sound2);
+				failcooldown = 0;
+			}
+		}
 
-	SoundSource mySpeaker;
+		static float musiccontrolcooldown = 1;
+		musiccontrolcooldown += dt;
+		if (musiccontrolcooldown > 1 && GetKeyState('P') & 0x8000)
+		{
+			if (myMusic.isPlaying()) // toggle play/pause
+			{
+				myMusic.Pause();
+			}
+			else 
+			{
+				myMusic.Play();
+			}
+			musiccontrolcooldown = 0;
+		}
 
-	std::cout << "playing magic sound...\n";
-	mySpeaker.Play(sound1);
+		if (GetKeyState('Q') & 0x8000)
+		{
+			keepRunning = false;
+		}
+		});
 
-	std::cout << "playing magic fail sound...\n";
-	mySpeaker.Play(sound2);
+	MainLoop::Get()->AddToDelayedUpdate([]() {
+		if (myMusic.isPlaying())
+		{
+			myMusic.UpdateBufferStream();
+		}
+		});
 
-
-	MusicBuffer myMusic("../res/music/TownTheme.wav");
-
-	std::cout << "playing town theme music...\n";
-	myMusic.Play();
-
-
-	ALint state = AL_PLAYING;
-	std::cout << "playing sound\n";
-	while (state == AL_PLAYING && alGetError() == AL_NO_ERROR)
-	{
-		myMusic.UpdateBufferStream();
-
-		alGetSourcei(myMusic.getSource(), AL_SOURCE_STATE, &state);
-	}
-
-
-	std::cout << "got here\n";
-
-	return 0;
+	return MainLoop::Get()->Run();
 }
