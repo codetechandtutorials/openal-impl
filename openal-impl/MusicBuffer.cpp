@@ -124,6 +124,14 @@ bool MusicBuffer::isPlaying()
 	return (state == AL_PLAYING);
 }
 
+void MusicBuffer::SetGain(const float& val)
+{
+	float newval = val;
+	if (newval < 0)
+		newval = 0;
+	alSourcef(p_Source, AL_GAIN, val);
+}
+
 MusicBuffer::MusicBuffer(const char* filename)
 {
 	alGenSources(1, &p_Source);
