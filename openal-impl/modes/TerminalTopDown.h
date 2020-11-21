@@ -125,13 +125,24 @@ void showscene()
 		map[PP/COLUMNS][PP<COLUMNS?PP:PP%COLUMNS] = Pdir; // update new slot
 		prevPP = PP;  // keep track of current position for backtracking
 
+
+		std::cout << ' ';
+		for (int col = 0; col < COLUMNS; col++)
+			std::cout << ' ' << '_';
+
 		for (int row = 0; row < ROWS; row++)
 		{
 			std::cout << '\n';
 			for (int col = 0; col < COLUMNS; col++) {
+				if (col == 0) std::cout << '|';
 				std::cout << ' ' << map[row][col];
+				if (col == COLUMNS-1) std::cout << '|';
 			}
 		}
+
+		std::cout << '\n' << ' ';
+		for (int col = 0; col < COLUMNS; col++)
+			std::cout << ' ' << '_';
 
 		std::cout << "\n\n\n MOVE: 'WASD'\n";
 
