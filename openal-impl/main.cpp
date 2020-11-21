@@ -5,7 +5,7 @@ int main()
 	static bool keepRunning = true;
 	MainLoop::Get()->SetRunCondition([]() {return keepRunning; });
 	MainLoop::Get()->AddToOnBegin([]() {TTD::defaultMap(); });
-	MainLoop::Get()->AddToOnUpdate([](float dt) {TTD::parseMovement(dt); });
+	MainLoop::Get()->AddToOnUpdate([](float dt) {TTD::parseUserInput(dt); TTD::updateAI(dt);});
 	MainLoop::Get()->AddToOnPostUpdate([]() {TTD::showscene(); });
 	return MainLoop::Get()->Run();
 }
