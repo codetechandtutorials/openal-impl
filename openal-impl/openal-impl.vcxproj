@@ -147,7 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainLoop\MainLoop.h" />
-    <ClInclude Include="modes\OGLFirstPersonPerspective.h" />
     <ClInclude Include="modes\TerminalTopDown.h" />
     <ClInclude Include="MusicBuffer.h" />
     <ClInclude Include="SoundEffectsLibrary.h" />

@@ -50,8 +50,5 @@
     <ClInclude Include="modes\TerminalTopDown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="modes\OGLFirstPersonPerspective.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
