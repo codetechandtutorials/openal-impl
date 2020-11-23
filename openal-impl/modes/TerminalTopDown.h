@@ -22,9 +22,10 @@ enum class GraphicKey { UNSEARCHED, SEARCHED, PLAYER1, PLAYER2 };
 GraphicKey map[ROWS][COLUMNS];
 bool mapHasChanged = true;  //process a map draw update
 GLuint programID;
+float aColor[3] = { 0,1,0 };
 
 struct Actor {
-	Actor(glm::vec3 pos) : PP(pos){};
+	Actor(glm::vec3 pos) : PP(pos) {};
 	glm::vec3 prevPP = { 0,0,0 };
 	glm::vec3 PP = { 0,0,0 };
 	enum class PlayerDirection { PRONE, LEFT, UP, RIGHT, DOWN } direction = PlayerDirection::PRONE;  //character to represent facing direction
@@ -39,7 +40,7 @@ void moveUp(Actor& actor, const float& dt)
 {
 	if (actor.direction != Actor::PlayerDirection::UP) {
 		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
+		//actor.hasUnprocessedMoved = true;
 		actor.direction = Actor::PlayerDirection::UP;
 	}
 
@@ -53,7 +54,7 @@ void moveUp(Actor& actor, const float& dt)
 	else
 	{
 		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
+		//actor.hasUnprocessedMoved = true;
 	}
 
 }
@@ -118,7 +119,7 @@ void moveRight(Actor& actor, const float& dt)
 		actor.hasUnprocessedMoved = true;
 	}
 }
-void loadSquare(){
+void loadSquare() {
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -186,7 +187,7 @@ void loadSquare(){
 	//glDrawArrays(GL_TRIANGLES, 0, 12*3); // Starting from vertex 0; 3 vertices total -> 1 triangle
 	//glDisableVertexAttribArray(0);
 }
-GLuint loadShader(const char * vertexshader,const char * fragmentshader){
+GLuint loadShader(const char* vertexshader, const char* fragmentshader) {
 
 	// Create the shaders
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -229,8 +230,8 @@ GLuint loadShader(const char * vertexshader,const char * fragmentshader){
 	// Check Vertex Shader
 	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
-		std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+	if (InfoLogLength > 0) {
+		std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
 		printf("%s\n", &VertexShaderErrorMessage[0]);
 	}
@@ -245,8 +246,8 @@ GLuint loadShader(const char * vertexshader,const char * fragmentshader){
 	// Check Fragment Shader
 	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
-		std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+	if (InfoLogLength > 0) {
+		std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
 		printf("%s\n", &FragmentShaderErrorMessage[0]);
 	}
@@ -261,15 +262,15 @@ GLuint loadShader(const char * vertexshader,const char * fragmentshader){
 	// Check the program
 	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
 	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if ( InfoLogLength > 0 ){
-		std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+	if (InfoLogLength > 0) {
+		std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
 		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
 		printf("%s\n", &ProgramErrorMessage[0]);
 	}
-	
+
 	glDetachShader(ProgramID, VertexShaderID);
 	glDetachShader(ProgramID, FragmentShaderID);
-	
+
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
 
@@ -277,27 +278,25 @@ GLuint loadShader(const char * vertexshader,const char * fragmentshader){
 }
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (action == GLFW_PRESS)
+	if (key == GLFW_KEY_W && action == GLFW_PRESS)
 	{
-		if (key == GLFW_KEY_W && action == GLFW_PRESS)
-		{
-			PLAYER1.direction = Actor::PlayerDirection::UP;
-		}
-		if (key == GLFW_KEY_S && action == GLFW_PRESS)
-		{
-
-			PLAYER1.direction = Actor::PlayerDirection::DOWN;
-		}
-		if (key == GLFW_KEY_A && action == GLFW_PRESS)
-		{
-
-			PLAYER1.direction = Actor::PlayerDirection::LEFT;
-		}
-		if (key == GLFW_KEY_D && action == GLFW_PRESS)
-		{
-
-			PLAYER1.direction = Actor::PlayerDirection::RIGHT;
-		}
+		PLAYER1.direction = Actor::PlayerDirection::UP;
+		PLAYER1.hasUnprocessedMoved = true;
+	}
+	if (key == GLFW_KEY_S && action == GLFW_PRESS)
+	{
+		PLAYER1.direction = Actor::PlayerDirection::DOWN;			
+		PLAYER1.hasUnprocessedMoved = true;
+	}
+	if (key == GLFW_KEY_A && action == GLFW_PRESS)
+	{
+		PLAYER1.direction = Actor::PlayerDirection::LEFT;			
+		PLAYER1.hasUnprocessedMoved = true;
+	}
+	if (key == GLFW_KEY_D && action == GLFW_PRESS)
+	{
+		PLAYER1.direction = Actor::PlayerDirection::RIGHT;		
+		PLAYER1.hasUnprocessedMoved = true;
 	}
 }
 void init() {
@@ -319,19 +318,20 @@ void init() {
 	glViewport(0, 0, 800, 600);
 	glfwSetKeyCallback(window, key_callback);
 	loadSquare();
-	const char* vertshader = 
-	"#version 330 core\n"
-	"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
-	"void main(){\n"
-	"  gl_Position.xyz = vertexPosition_modelspace;\n"
-	"  gl_Position.w = 1.0;\n"
-  "}";
-	const char* fragshader =  
-	"#version 330 core\n"
-	"out vec3 color;"
-	"void main() {\n"
-	"  color = vec3(1, 0, 0);\n"
-	"}";
+	const char* vertshader =
+		"#version 330 core\n"
+		"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+		"void main(){\n"
+		"  gl_Position.xyz = vertexPosition_modelspace;\n"
+		"  gl_Position.w = 1.0;\n"
+		"}";
+	const char* fragshader =
+		"#version 330 core\n"
+		"out vec3 color;"
+		"uniform vec3 ucolor;"
+		"void main() {\n"
+		"  color = ucolor;\n"
+		"}";
 	programID = loadShader(vertshader, fragshader);
 }
 void defaultMap()
@@ -348,19 +348,33 @@ void processPlayer(float dt)
 {
 	if (PLAYER1.hasUnprocessedMoved)
 	{
+		PLAYER1.hasUnprocessedMoved = false;
+		mapHasChanged = true;
 		switch (PLAYER1.direction)
 		{
 		case Actor::PlayerDirection::UP:
-			moveUp(PLAYER1, dt);
+			//moveUp(PLAYER1, dt);
+			aColor[0] = .4f;
+			aColor[1] = .2f;
+			aColor[2] = .6f;
 			break;
 		case Actor::PlayerDirection::DOWN:
-			moveDown(PLAYER1, dt);
+			//moveDown(PLAYER1, dt);
+			aColor[0] = .8f;
+			aColor[1] = .1f;
+			aColor[2] = .2f;
 			break;
 		case Actor::PlayerDirection::LEFT:
-			moveLeft(PLAYER1, dt);
+			//moveLeft(PLAYER1, dt);
+			aColor[0] = .2f;
+			aColor[1] = .3f;
+			aColor[2] = .9f;
 			break;
 		case Actor::PlayerDirection::RIGHT:
-			moveRight(PLAYER1, dt);
+			//moveRight(PLAYER1, dt);
+			aColor[0] = .1f;
+			aColor[1] = .6f;
+			aColor[2] = .1f;
 			break;
 		case Actor::PlayerDirection::PRONE:
 			break;
@@ -392,126 +406,6 @@ void processAI(float dt) {
 			break;
 		}
 	}
-	//static const float AISPEED = .2667f;
-	//static float AITIMEOUT = 0;
-	//AITIMEOUT += dt;
-	//if (AITIMEOUT > AISPEED) {
-	//	AITIMEOUT = 0;
-	//	int cpos = 0;
-	//	if (AIP < COLUMNS) // IN TOP ROW DON'T CHECK UP
-	//	{
-	//	}
-	//	else  // NOT IN TOP ROW CHECK UP
-	//	{
-	//		cpos = AIP - COLUMNS;
-	//		if (map[cpos / COLUMNS][cpos < COLUMNS ? cpos : cpos % COLUMNS] == '0')
-	//		{
-	//			AIP = cpos;
-	//			mapHasChanged = true;
-	//			AIHasMoved = true;
-	//			return;
-	//		}
-	//	}
-
-	//	if (AIP == 0 || AIP % COLUMNS == 0)  // AGAINST LEFT WALL DON'T CHECK LEFT
-	//	{
-	//	}
-	//	else  // NOT AGAINST LEFT WALL
-	//	{
-	//		cpos = AIP - 1;
-	//		if (map[cpos / COLUMNS][cpos < COLUMNS ? cpos : cpos % COLUMNS] == '0')
-	//		{
-	//			AIP = cpos;
-	//			mapHasChanged = true;
-	//			AIHasMoved = true;
-	//			return;
-	//		}
-	//	}
-
-
-	//	if (AIP % COLUMNS == COLUMNS - 1)  // agianst right wall dont che3ck right
-	//	{
-	//	}
-	//	else // not against right wall
-	//	{
-	//		cpos = AIP + 1;
-	//		if (map[cpos / COLUMNS][cpos < COLUMNS ? cpos : cpos % COLUMNS] == '0')
-	//		{
-	//			AIP = cpos;
-	//			mapHasChanged = true;
-	//			AIHasMoved = true;
-	//			return;
-	//		}
-	//	}
-
-	//	if (AIP / COLUMNS == ROWS)  // on last row dont check down
-	//	{
-
-	//	}
-	//	else // not on last row
-	//	{
-	//		cpos = AIP + COLUMNS;
-	//		if (map[cpos / COLUMNS][cpos < COLUMNS ? cpos : cpos % COLUMNS] == '0')
-	//		{
-	//			AIP = cpos;
-	//			mapHasChanged = true;
-	//			AIHasMoved = true;
-	//			return;
-	//		}
-	//	}
-
-	//	//fail case, no 0's around
-	//	if (AIP < COLUMNS) // IN TOP ROW DON'T CHECK UP
-	//	{
-	//	}
-	//	else  // NOT IN TOP ROW CHECK UP
-	//	{
-	//		cpos = AIP - COLUMNS;
-	//		AIP = cpos;
-	//		mapHasChanged = true;
-	//		AIHasMoved = true;
-	//		return;
-	//	}
-
-	//	if (AIP == 0 || AIP % COLUMNS == 0)  // AGAINST LEFT WALL DON'T CHECK LEFT
-	//	{
-	//	}
-	//	else  // NOT AGAINST LEFT WALL
-	//	{
-	//		cpos = AIP - 1;
-	//		AIP = cpos;
-	//		mapHasChanged = true;
-	//		AIHasMoved = true;
-	//		return;
-	//	}
-
-
-	//	if (AIP % COLUMNS == COLUMNS - 1)  // agianst right wall dont che3ck right
-	//	{
-	//	}
-	//	else // not against right wall
-	//	{
-	//		cpos = AIP + 1;
-	//		AIP = cpos;
-	//		mapHasChanged = true;
-	//		AIHasMoved = true;
-	//		return;
-	//	}
-
-	//	if (AIP / COLUMNS == ROWS)  // on last row dont check down
-	//	{
-
-	//	}
-	//	else // not on last row
-	//	{
-	//		cpos = AIP + COLUMNS;
-	//		AIP = cpos;
-	//		mapHasChanged = true;
-	//		AIHasMoved = true;
-	//		return;
-	//	}
-
-	//}
 }
 void clearScreen()
 {
@@ -526,6 +420,9 @@ void renderScene()
 		clearScreen();
 
 		glUseProgram(programID);
+
+		glUniform3fv(glGetUniformLocation(programID, "ucolor"), 1, &aColor[0]);
+
 
 		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
 
