@@ -2,10 +2,9 @@
 #include "modes/TerminalTopDown.h"
 int main()
 {
-	static bool keepRunning = true;
-	MainLoop::Get()->SetRunCondition([]() {return keepRunning; });
-	MainLoop::Get()->AddToOnBegin([]() {TTD::defaultMap(); });
-	MainLoop::Get()->AddToOnUpdate([](float dt) {TTD::parseUserInput(dt); TTD::updateAI(dt);});
-	MainLoop::Get()->AddToOnPostUpdate([]() {TTD::showscene(); });
+	MainLoop::Get()->SetRunCondition([]() {return TTD::isRunning(); });
+	MainLoop::Get()->AddToOnBegin([]() {TTD::defaultMap();TTD::init(); });
+	MainLoop::Get()->AddToOnUpdate([](float dt) {TTD::processPlayer(dt); TTD::processAI(dt);});
+	MainLoop::Get()->AddToOnPostUpdate([]() {TTD::renderScene(); });
 	return MainLoop::Get()->Run();
 }
