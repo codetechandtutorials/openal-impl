@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 #include "../SoundDevice.h"
 #include "../MusicBuffer.h"
 #include "../SoundEffectsLibrary.h"
@@ -17,7 +18,7 @@ int aiwalksound = SE_LOAD("../res/walksounds/Fantozzi-SandL1.ogg");
 SoundEffectsPlayer walkplayer;
 SoundEffectsPlayer aiwalkplayer;
 const constexpr int ROWS = 20, COLUMNS = 20;
-
+const constexpr int SCALESIZE = 30;
 enum class GraphicKey { UNSEARCHED, SEARCHED, PLAYER1, PLAYER2 };
 GraphicKey map[ROWS][COLUMNS];
 bool mapHasChanged = true;  //process a map draw update
@@ -285,17 +286,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::DOWN;			
+		PLAYER1.direction = Actor::PlayerDirection::DOWN;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::LEFT;			
+		PLAYER1.direction = Actor::PlayerDirection::LEFT;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 	if (key == GLFW_KEY_D && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::RIGHT;		
+		PLAYER1.direction = Actor::PlayerDirection::RIGHT;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 }
@@ -307,7 +308,7 @@ void init() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-	window = glfwCreateWindow(800, 600, "terminal top down", nullptr/*mainmonitor*/, nullptr/*share*/);
+	window = glfwCreateWindow(COLUMNS * SCALESIZE, ROWS * SCALESIZE, "terminal top down", nullptr/*mainmonitor*/, nullptr/*share*/);
 	if (!window) {
 		throw("error with windo init");
 		glfwTerminate();
@@ -315,24 +316,26 @@ void init() {
 	glfwMakeContextCurrent(window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		throw("error init glad");
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, COLUMNS * SCALESIZE, ROWS * SCALESIZE);
 	glfwSetKeyCallback(window, key_callback);
 	loadSquare();
 	const char* vertshader =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
-		"void main(){\n"
-		"  gl_Position.xyz = vertexPosition_modelspace;\n"
-		"  gl_Position.w = 1.0;\n"
+		"#version 330 core                                                  \n"
+		"layout(location = 0) in vec3 vertexPosition_modelspace;            \n"
+		"uniform mat4 modelmatrix;                                          \n"
+		"void main(){                                                       \n"
+		"  gl_Position = modelmatrix * vec4(vertexPosition_modelspace, 1.0);\n"
 		"}";
 	const char* fragshader =
-		"#version 330 core\n"
-		"out vec3 color;"
-		"uniform vec3 ucolor;"
-		"void main() {\n"
-		"  color = ucolor;\n"
+		"#version 330 core   \n"
+		"out vec3 color;     \n"
+		"uniform vec3 ucolor;\n"
+		"void main() {       \n"
+		"  color = ucolor;   \n"
 		"}";
 	programID = loadShader(vertshader, fragshader);
+	glUniform1iv(glGetUniformLocation(programID, "scalesize"), 1, &SCALESIZE);
+
 }
 void defaultMap()
 {
@@ -421,10 +424,36 @@ void renderScene()
 
 		glUseProgram(programID);
 
-		glUniform3fv(glGetUniformLocation(programID, "ucolor"), 1, &aColor[0]);
+		//glUniform1iv(glGetUniformLocation(programID, "scalesize"), 1, &SCALESIZE);
 
+		for (int r = 0; r < ROWS; r++) {
+			for (int c = 0; c < COLUMNS; c++)
+			{
+				glm::mat4 ModelMatrix(1);
 
-		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
+				glm::vec3 Translate(c*(SCALESIZE*.00173)-.491f, r*(SCALESIZE*.00173)-.491f, 0);
+				ModelMatrix = glm::translate(ModelMatrix, Translate);
+				glm::vec3 Scale(1);
+				ModelMatrix = glm::scale(ModelMatrix, Scale);
+				static const glm::vec3 rot_ax_x(1, 0, 0);
+				static const glm::vec3 rot_ax_y(0, 1, 0);
+				static const glm::vec3 rot_ax_z(0, 0, 1);
+				glm::vec3 Rotation(0);
+				ModelMatrix = glm::rotate(ModelMatrix, Rotation.x, rot_ax_x);
+				ModelMatrix = glm::rotate(ModelMatrix, Rotation.y, rot_ax_y);
+				ModelMatrix = glm::rotate(ModelMatrix, Rotation.z, rot_ax_z);
+
+				glUniformMatrix4fv(glGetUniformLocation(programID, "modelmatrix"), 1, false, &ModelMatrix[0][0]);
+
+				aColor[0] = r * .03f;
+				aColor[1] = c * .03f;
+				aColor[2] = r * .03f;
+
+				glUniform3fv(glGetUniformLocation(programID, "ucolor"), 1, &aColor[0]);
+
+				glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
+			}
+		}
 
 		glfwSwapBuffers(window);
 	}
