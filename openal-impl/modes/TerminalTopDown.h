@@ -24,7 +24,7 @@ struct Actor {
 	Actor(glm::vec3 pos) : PP(pos){};
 	glm::vec3 prevPP = { 0,0,0 };
 	glm::vec3 PP = { 0,0,0 };
-	enum class PlayerDirection { PRONE, LEFT, UP, RIGHT, DOWN } direction;  //character to represent facing direction
+	enum class PlayerDirection { PRONE, LEFT, UP, RIGHT, DOWN } direction = PlayerDirection::PRONE;  //character to represent facing direction
 	bool hasUnprocessedMoved = false;
 };
 
@@ -115,6 +115,74 @@ void moveRight(Actor& actor, const float& dt)
 		actor.hasUnprocessedMoved = true;
 	}
 }
+void loadSquare(){
+
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+	static const GLfloat g_vertex_buffer_data[] = {
+		-.5f,-.5f,-.5f, // triangle 1 : begin
+		-.5f,-.5f, .5f,
+		-.5f, .5f, .5f, // triangle 1 : end
+		.5f, .5f,-.5f, // triangle 2 : begin
+		-.5f,-.5f,-.5f,
+		-.5f, .5f,-.5f, // triangle 2 : end
+		.5f,-.5f, .5f,
+		-.5f,-.5f,-.5f,
+		.5f,-.5f,-.5f,
+		.5f, .5f,-.5f,
+		.5f,-.5f,-.5f,
+		-.5f,-.5f,-.5f,
+		-.5f,-.5f,-.5f,
+		-.5f, .5f, .5f,
+		-.5f, .5f,-.5f,
+		.5f,-.5f, .5f,
+		-.5f,-.5f, .5f,
+		-.5f,-.5f,-.5f,
+		-.5f, .5f, .5f,
+		-.5f,-.5f, .5f,
+		.5f,-.5f, .5f,
+		.5f, .5f, .5f,
+		.5f,-.5f,-.5f,
+		.5f, .5f,-.5f,
+		.5f,-.5f,-.5f,
+		.5f, .5f, .5f,
+		.5f,-.5f, .5f,
+		.5f, .5f, .5f,
+		.5f, .5f,-.5f,
+		-.5f, .5f,-.5f,
+		.5f, .5f, .5f,
+		-.5f, .5f,-.5f,
+		-.5f, .5f, .5f,
+		.5f, .5f, .5f,
+		-.5f, .5f, .5f,
+		.5f,-.5f, .5f
+	};
+
+	// This will identify our vertex buffer
+	GLuint vertexbuffer;
+	// Generate 1 buffer, put the resulting identifier in vertexbuffer
+	glGenBuffers(1, &vertexbuffer);
+	// The following commands will talk about our 'vertexbuffer' buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	// Give our vertices to OpenGL.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+	// 1st attribute buffer : vertices
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+	);
+	// Draw the triangle !
+	//glDrawArrays(GL_TRIANGLES, 0, 12*3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+	//glDisableVertexAttribArray(0);
+}
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
@@ -154,7 +222,11 @@ void init() {
 		glfwTerminate();
 	}
 	glfwMakeContextCurrent(window);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		throw("error init glad");
+	glViewport(0, 0, 800, 600);
 	glfwSetKeyCallback(window, key_callback);
+	loadSquare();
 }
 void defaultMap()
 {
@@ -190,7 +262,7 @@ void processPlayer(float dt)
 			break;
 		}
 	}
-};
+}
 void processAI(float dt) {
 	if (PLAYER2.hasUnprocessedMoved)
 	{
@@ -339,15 +411,18 @@ void clearScreen()
 {
 	//system("cls");
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-};
+}
 void renderScene()
 {
 	if (mapHasChanged)
 	{
 		mapHasChanged = false;
 		clearScreen();
+
+		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
+
 		glfwSwapBuffers(window);
 	}
 	glfwPollEvents();
-};
+}
 }  // end namespace TTD
