@@ -7,6 +7,8 @@
 #include "../MusicBuffer.h"
 #include "../SoundEffectsLibrary.h"
 #include "../SoundEffectsPlayer.h"
+#include <fstream>
+#include <sstream>
 
 namespace TTD {
 SoundDevice* sd = LISTENER->Get();
@@ -19,6 +21,7 @@ const constexpr int ROWS = 20, COLUMNS = 20;
 enum class GraphicKey { UNSEARCHED, SEARCHED, PLAYER1, PLAYER2 };
 GraphicKey map[ROWS][COLUMNS];
 bool mapHasChanged = true;  //process a map draw update
+GLuint programID;
 
 struct Actor {
 	Actor(glm::vec3 pos) : PP(pos){};
@@ -183,6 +186,95 @@ void loadSquare(){
 	//glDrawArrays(GL_TRIANGLES, 0, 12*3); // Starting from vertex 0; 3 vertices total -> 1 triangle
 	//glDisableVertexAttribArray(0);
 }
+GLuint loadShader(const char * vertexshader,const char * fragmentshader){
+
+	// Create the shaders
+	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+	//// Read the Vertex Shader code from the file
+	//std::string VertexShaderCode;
+	//std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
+	//if(VertexShaderStream.is_open()){
+	//	std::stringstream sstr;
+	//	sstr << VertexShaderStream.rdbuf();
+	//	VertexShaderCode = sstr.str();
+	//	VertexShaderStream.close();
+	//}else{
+	//	printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
+	//	getchar();
+	//	return 0;
+	//}
+
+	//// Read the Fragment Shader code from the file
+	//std::string FragmentShaderCode;
+	//std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
+	//if(FragmentShaderStream.is_open()){
+	//	std::stringstream sstr;
+	//	sstr << FragmentShaderStream.rdbuf();
+	//	FragmentShaderCode = sstr.str();
+	//	FragmentShaderStream.close();
+	//}
+
+	GLint Result = GL_FALSE;
+	int InfoLogLength;
+
+	// Compile Vertex Shader
+	//printf("Compiling shader : %s\n", vertex_file_path);
+	//char const * VertexSourcePointer = VertexShaderCode.c_str();
+	//glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
+	glShaderSource(VertexShaderID, 1, &vertexshader, NULL);
+	glCompileShader(VertexShaderID);
+
+	// Check Vertex Shader
+	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if ( InfoLogLength > 0 ){
+		std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+		printf("%s\n", &VertexShaderErrorMessage[0]);
+	}
+
+	// Compile Fragment Shader
+	//printf("Compiling shader : %s\n", fragment_file_path);
+	//char const * FragmentSourcePointer = FragmentShaderCode.c_str();
+	//glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
+	glShaderSource(FragmentShaderID, 1, &fragmentshader, NULL);
+	glCompileShader(FragmentShaderID);
+
+	// Check Fragment Shader
+	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if ( InfoLogLength > 0 ){
+		std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+		printf("%s\n", &FragmentShaderErrorMessage[0]);
+	}
+
+	// Link the program
+	printf("Linking program\n");
+	GLuint ProgramID = glCreateProgram();
+	glAttachShader(ProgramID, VertexShaderID);
+	glAttachShader(ProgramID, FragmentShaderID);
+	glLinkProgram(ProgramID);
+
+	// Check the program
+	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if ( InfoLogLength > 0 ){
+		std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+		printf("%s\n", &ProgramErrorMessage[0]);
+	}
+	
+	glDetachShader(ProgramID, VertexShaderID);
+	glDetachShader(ProgramID, FragmentShaderID);
+	
+	glDeleteShader(VertexShaderID);
+	glDeleteShader(FragmentShaderID);
+
+	return ProgramID;
+}
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
@@ -227,6 +319,20 @@ void init() {
 	glViewport(0, 0, 800, 600);
 	glfwSetKeyCallback(window, key_callback);
 	loadSquare();
+	const char* vertshader = 
+	"#version 330 core\n"
+	"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+	"void main(){\n"
+	"  gl_Position.xyz = vertexPosition_modelspace;\n"
+	"  gl_Position.w = 1.0;\n"
+  "}";
+	const char* fragshader =  
+	"#version 330 core\n"
+	"out vec3 color;"
+	"void main() {\n"
+	"  color = vec3(1, 0, 0);\n"
+	"}";
+	programID = loadShader(vertshader, fragshader);
 }
 void defaultMap()
 {
@@ -410,7 +516,7 @@ void processAI(float dt) {
 void clearScreen()
 {
 	//system("cls");
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void renderScene()
 {
@@ -418,6 +524,8 @@ void renderScene()
 	{
 		mapHasChanged = false;
 		clearScreen();
+
+		glUseProgram(programID);
 
 		glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
 
