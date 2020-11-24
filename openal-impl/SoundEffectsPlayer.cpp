@@ -52,6 +52,11 @@ void SoundEffectsPlayer::SetLooping(const bool& loop)
 	alSourcei(p_Source, AL_LOOPING, (ALint)loop);
 }
 
+void SoundEffectsPlayer::SetPosition(const float& x, const float& y, const float& z)
+{
+	alSource3f(p_Source, AL_POSITION, x, y, z);
+}
+
 bool SoundEffectsPlayer::isPlaying()
 {
 	ALint playState;

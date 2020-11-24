@@ -13,6 +13,7 @@ public:
 
 	void SetBufferToPlay(const ALuint& buffer_to_play);
 	void SetLooping(const bool& loop);
+	void SetPosition(const float& x, const float& y, const float& z);
 
 	bool isPlaying();
 

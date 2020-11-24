@@ -1,24 +1,18 @@
 #pragma once
-#include <string>
+#include "../SoundDevice.h"
+#include "../SoundEffectsPlayer.h"
+#include "../SoundEffectsLibrary.h"
+#include <glm/ext/vector_float3.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include "../SoundDevice.h"
-#include "../MusicBuffer.h"
-#include "../SoundEffectsLibrary.h"
-#include "../SoundEffectsPlayer.h"
-#include <fstream>
-#include <sstream>
 
-namespace TTD {
+namespace GridGame {
 SoundDevice* sd = LISTENER->Get();
-int walksound = SE_LOAD("../res/walksounds/stomp.ogg");
-int aiwalksound = SE_LOAD("../res/walksounds/Fantozzi-SandL1.ogg");
-SoundEffectsPlayer walkplayer;
-SoundEffectsPlayer aiwalkplayer;
-const constexpr int ROWS = 20, COLUMNS = 20;
-const constexpr int SCALESIZE = 30;
+int SciFiSound = SE_LOAD("../res/soundeffects/sci-fidrone.ogg");
+SoundEffectsPlayer sound_effects_player_forSciFiSound;
+const constexpr int ROWS = 10, COLUMNS = 10;
+const constexpr float CELLSIZE = 40;  // assumes ROWS == COLUMNS for simplicity
 enum class GraphicKey { UNSEARCHED, SEARCHED, PLAYER1, PLAYER2 };
 GraphicKey map[ROWS][COLUMNS];
 bool mapHasChanged = true;  //process a map draw update
@@ -26,102 +20,16 @@ GLuint programID;
 float aColor[3] = { 0,1,0 };
 
 struct Actor {
-	Actor(glm::vec3 pos) : PP(pos) {};
-	glm::vec3 prevPP = { 0,0,0 };
-	glm::vec3 PP = { 0,0,0 };
-	enum class PlayerDirection { PRONE, LEFT, UP, RIGHT, DOWN } direction = PlayerDirection::PRONE;  //character to represent facing direction
+	Actor() {};
+	Actor(int x, int y) { mapPos[0] = x; mapPos[1] = y;};
+	glm::vec3 Pos = { 0,0,0 };
+	int mapPos[2] = { 0,0 };
+	enum class Orientation { PRONE, LEFT, UP, RIGHT, DOWN } direction = Orientation::PRONE;  //character to represent facing direction
 	bool hasUnprocessedMoved = false;
 };
-
-Actor PLAYER1(glm::vec3(0, 0, 0)), PLAYER2(glm::vec3(ROWS, 0, COLUMNS));
-
+Actor PLAYER1, PLAYER2((int)(ROWS-1), (int)(COLUMNS-1));
 GLFWwindow* window;
-bool isRunning() { return (!glfwWindowShouldClose(window)); }
-void moveUp(Actor& actor, const float& dt)
-{
-	if (actor.direction != Actor::PlayerDirection::UP) {
-		mapHasChanged = true;
-		//actor.hasUnprocessedMoved = true;
-		actor.direction = Actor::PlayerDirection::UP;
-	}
-
-	glm::vec3 velocity = glm::vec3(0, 0, -1) * dt;
-	actor.PP += velocity;
-
-	if (actor.PP.z < 0)
-	{
-		actor.PP -= velocity;
-	}
-	else
-	{
-		mapHasChanged = true;
-		//actor.hasUnprocessedMoved = true;
-	}
-
-}
-void moveDown(Actor& actor, const float& dt)
-{
-	if (actor.direction != Actor::PlayerDirection::DOWN) {
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-		actor.direction = Actor::PlayerDirection::DOWN;
-	}
-
-	glm::vec3 velocity = glm::vec3(0, 0, 1) * dt;
-	actor.PP += velocity;
-
-	if (actor.PP.z > ROWS)
-	{
-		actor.PP -= velocity;
-	}
-	else
-	{
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-	}
-}
-void moveLeft(Actor& actor, const float& dt)
-{
-	if (actor.direction != Actor::PlayerDirection::DOWN) {
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-		actor.direction = Actor::PlayerDirection::DOWN;
-	}
-	glm::vec3 velocity = glm::vec3(-1, 0, 0) * dt;
-	actor.PP += velocity;
-
-	if (actor.PP.x < 0)
-	{
-		actor.PP -= velocity;
-	}
-	else
-	{
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-	}
-}
-void moveRight(Actor& actor, const float& dt)
-{
-	if (actor.direction != Actor::PlayerDirection::RIGHT) {
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-		actor.direction = Actor::PlayerDirection::RIGHT;
-	}
-	glm::vec3 velocity = glm::vec3(1, 0, 0) * dt;
-	actor.PP += velocity;
-
-	if (actor.PP.x < COLUMNS)
-	{
-		actor.PP -= velocity;
-	}
-	else
-	{
-		mapHasChanged = true;
-		actor.hasUnprocessedMoved = true;
-	}
-}
 void loadSquare() {
-
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
@@ -281,25 +189,50 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_W && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::UP;
+		PLAYER1.direction = Actor::Orientation::UP;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::DOWN;
+		PLAYER1.direction = Actor::Orientation::DOWN;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::LEFT;
+		PLAYER1.direction = Actor::Orientation::LEFT;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 	if (key == GLFW_KEY_D && action == GLFW_PRESS)
 	{
-		PLAYER1.direction = Actor::PlayerDirection::RIGHT;
+		PLAYER1.direction = Actor::Orientation::RIGHT;
 		PLAYER1.hasUnprocessedMoved = true;
 	}
 }
+void setPLAYER1ListenerLoc()
+{
+	sd->SetLocation(
+		(float)PLAYER1.mapPos[0],
+		(float)PLAYER1.mapPos[1],
+		0
+	);
+	switch (PLAYER1.direction)
+	{
+		case Actor::Orientation::LEFT:
+		sd->SetOrientation(-1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+		break;
+		case Actor::Orientation::RIGHT:
+			sd->SetOrientation(1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+		break;
+		case Actor::Orientation::UP:
+			sd->SetOrientation(0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
+		break;
+		case Actor::Orientation::DOWN:
+			sd->SetOrientation(0.f, -1.f, 0.f, 0.f, 0.f, 1.f);
+		break;
+		default:
+		break;
+	}
+};
 void init() {
 	if (!glfwInit())
 		throw("error in glfw init");
@@ -308,15 +241,15 @@ void init() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-	window = glfwCreateWindow(COLUMNS * SCALESIZE, ROWS * SCALESIZE, "terminal top down", nullptr/*mainmonitor*/, nullptr/*share*/);
+	window = glfwCreateWindow(COLUMNS * CELLSIZE, ROWS * CELLSIZE, "terminal top down", nullptr/*mainmonitor*/, nullptr/*share*/);
 	if (!window) {
-		throw("error with windo init");
+		throw("error with window init");
 		glfwTerminate();
 	}
 	glfwMakeContextCurrent(window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		throw("error init glad");
-	glViewport(0, 0, COLUMNS * SCALESIZE, ROWS * SCALESIZE);
+		throw("error with glad init");
+	glViewport(0, 0, COLUMNS * CELLSIZE, ROWS * CELLSIZE);
 	glfwSetKeyCallback(window, key_callback);
 	loadSquare();
 	const char* vertshader =
@@ -334,55 +267,66 @@ void init() {
 		"  color = ucolor;   \n"
 		"}";
 	programID = loadShader(vertshader, fragshader);
-	glUniform1iv(glGetUniformLocation(programID, "scalesize"), 1, &SCALESIZE);
+	ALint attunation = AL_INVERSE_DISTANCE_CLAMPED;
+	sd->SetAttunation(attunation);
+	sd->SetLocation(0.f, 0.f, 0.f);
+	sd->SetOrientation(0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
 
+	sound_effects_player_forSciFiSound.SetLooping(true);
+	sound_effects_player_forSciFiSound.SetPosition(ROWS-1, COLUMNS-1, 0);
+	sound_effects_player_forSciFiSound.Play(SciFiSound);
 }
-void defaultMap()
+void processMapChanges()
 {
 	for (int x = 0; x < ROWS; x++)  //rows
 	{
 		for (int y = 0; y < COLUMNS; y++)  //columns
 		{
-			map[x][y] = GraphicKey::UNSEARCHED;
+			if (x == PLAYER1.mapPos[0] && y == PLAYER1.mapPos[1])
+				map[x][y] = GraphicKey::PLAYER1;
+			else if (x == PLAYER2.mapPos[0] && y == PLAYER2.mapPos[1])
+				map[x][y] = GraphicKey::PLAYER2;
+			else
+				map[x][y] = GraphicKey::UNSEARCHED;
 		}
 	}
 }
 void processPlayer(float dt)
 {
-	if (PLAYER1.hasUnprocessedMoved)
+	static const float MOVECD = .1667f;
+	static float stopwatch = .1667f;
+	stopwatch += dt;
+	if (stopwatch > MOVECD)
 	{
-		PLAYER1.hasUnprocessedMoved = false;
-		mapHasChanged = true;
-		switch (PLAYER1.direction)
+		if (PLAYER1.hasUnprocessedMoved)
 		{
-		case Actor::PlayerDirection::UP:
-			//moveUp(PLAYER1, dt);
-			aColor[0] = .4f;
-			aColor[1] = .2f;
-			aColor[2] = .6f;
-			break;
-		case Actor::PlayerDirection::DOWN:
-			//moveDown(PLAYER1, dt);
-			aColor[0] = .8f;
-			aColor[1] = .1f;
-			aColor[2] = .2f;
-			break;
-		case Actor::PlayerDirection::LEFT:
-			//moveLeft(PLAYER1, dt);
-			aColor[0] = .2f;
-			aColor[1] = .3f;
-			aColor[2] = .9f;
-			break;
-		case Actor::PlayerDirection::RIGHT:
-			//moveRight(PLAYER1, dt);
-			aColor[0] = .1f;
-			aColor[1] = .6f;
-			aColor[2] = .1f;
-			break;
-		case Actor::PlayerDirection::PRONE:
-			break;
-		default:
-			break;
+			stopwatch = 0.f;
+			PLAYER1.hasUnprocessedMoved = false;
+			mapHasChanged = true;
+			switch (PLAYER1.direction)
+			{
+			case Actor::Orientation::UP:
+				if (PLAYER1.mapPos[1] < ROWS - 1)
+					PLAYER1.mapPos[1]++;
+				break;
+			case Actor::Orientation::DOWN:
+				if (PLAYER1.mapPos[1] > 0)
+					PLAYER1.mapPos[1]--;
+				break;
+			case Actor::Orientation::LEFT:
+				if (PLAYER1.mapPos[0] > 0)
+					PLAYER1.mapPos[0]--;
+				break;
+			case Actor::Orientation::RIGHT:
+				if (PLAYER1.mapPos[0] < COLUMNS -1)
+					PLAYER1.mapPos[0]++;
+				break;
+			case Actor::Orientation::PRONE:
+				break;
+			default:
+				break;
+			}
+			setPLAYER1ListenerLoc();
 		}
 	}
 }
@@ -391,28 +335,50 @@ void processAI(float dt) {
 	{
 		switch (PLAYER2.direction)
 		{
-		case Actor::PlayerDirection::UP:
-			moveUp(PLAYER2, dt);
+		case Actor::Orientation::UP:
 			break;
-		case Actor::PlayerDirection::DOWN:
-			moveDown(PLAYER2, dt);
+		case Actor::Orientation::DOWN:
 			break;
-		case Actor::PlayerDirection::LEFT:
-			moveLeft(PLAYER2, dt);
+		case Actor::Orientation::LEFT:
 			break;
-		case Actor::PlayerDirection::RIGHT:
-			moveRight(PLAYER2, dt);
+		case Actor::Orientation::RIGHT:
 			break;
-		case Actor::PlayerDirection::PRONE:
+		case Actor::Orientation::PRONE:
 			break;
 		default:
 			break;
 		}
 	}
 }
+void setCellDrawColor(const int& x, const int& y) {
+	processMapChanges();
+	switch (map[x][y]) {
+	case GraphicKey::UNSEARCHED:
+		aColor[0] = 0.1f;
+		aColor[1] = 0.4f;
+		aColor[2] = 0.1f;
+		break;
+	case GraphicKey::SEARCHED:
+		aColor[0] = 0.1f;
+		aColor[1] = 0.1f;
+		aColor[2] = 0.1f;
+		break;
+	case GraphicKey::PLAYER1:
+		aColor[0] = 0.1f;
+		aColor[1] = 0.1f;
+		aColor[2] = 0.9f;
+		break;
+	case GraphicKey::PLAYER2:
+		aColor[0] = 0.9f;
+		aColor[1] = 0.1f;
+		aColor[2] = 0.1f;
+		break;
+	default:
+		break;
+	}
+}
 void clearScreen()
 {
-	//system("cls");
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 void renderScene()
@@ -421,42 +387,36 @@ void renderScene()
 	{
 		mapHasChanged = false;
 		clearScreen();
-
 		glUseProgram(programID);
-
-		//glUniform1iv(glGetUniformLocation(programID, "scalesize"), 1, &SCALESIZE);
-
+		/// <summary>
+		/// Where map[0][0] is the Bottom Left, and map[ROWS-1][COLUMNS-1] is the Top Right.
+		/// </summary>
 		for (int r = 0; r < ROWS; r++) {
 			for (int c = 0; c < COLUMNS; c++)
 			{
-				glm::mat4 ModelMatrix(1);
-
-				glm::vec3 Translate(c*(SCALESIZE*.00173)-.491f, r*(SCALESIZE*.00173)-.491f, 0);
-				ModelMatrix = glm::translate(ModelMatrix, Translate);
-				glm::vec3 Scale(1);
-				ModelMatrix = glm::scale(ModelMatrix, Scale);
-				static const glm::vec3 rot_ax_x(1, 0, 0);
-				static const glm::vec3 rot_ax_y(0, 1, 0);
-				static const glm::vec3 rot_ax_z(0, 0, 1);
-				glm::vec3 Rotation(0);
-				ModelMatrix = glm::rotate(ModelMatrix, Rotation.x, rot_ax_x);
-				ModelMatrix = glm::rotate(ModelMatrix, Rotation.y, rot_ax_y);
-				ModelMatrix = glm::rotate(ModelMatrix, Rotation.z, rot_ax_z);
-
-				glUniformMatrix4fv(glGetUniformLocation(programID, "modelmatrix"), 1, false, &ModelMatrix[0][0]);
-
-				aColor[0] = r * .03f;
-				aColor[1] = c * .03f;
-				aColor[2] = r * .03f;
-
+				setCellDrawColor(r, c);
 				glUniform3fv(glGetUniformLocation(programID, "ucolor"), 1, &aColor[0]);
+				glm::mat4 ModelMatrix(1);
+				glm::vec3 Translate((float)((float)r / (float)COLUMNS) * 2.f - .9f, (float)((float)c / (float)ROWS) * 2.f - .9f, 0.f);
 
+				//std::cout << "crl: " << Translate.x << ", " << Translate.y << '|';
+				ModelMatrix = glm::translate(ModelMatrix, Translate);
+				glm::vec3 Scale((float)ROWS / (float)CELLSIZE - .08f);
+				ModelMatrix = glm::scale(ModelMatrix, Scale);
+				//static const glm::vec3 rot_ax_x(1, 0, 0);
+				//static const glm::vec3 rot_ax_y(0, 1, 0);
+				//static const glm::vec3 rot_ax_z(0, 0, 1);
+				//glm::vec3 Rotation(0);
+				//ModelMatrix = glm::rotate(ModelMatrix, Rotation.x, rot_ax_x);
+				//ModelMatrix = glm::rotate(ModelMatrix, Rotation.y, rot_ax_y);
+				//ModelMatrix = glm::rotate(ModelMatrix, Rotation.z, rot_ax_z);
+				glUniformMatrix4fv(glGetUniformLocation(programID, "modelmatrix"), 1, false, &ModelMatrix[0][0]);
 				glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles -> 6 squares
 			}
 		}
-
 		glfwSwapBuffers(window);
 	}
 	glfwPollEvents();
 }
+bool isRunning() { return (!glfwWindowShouldClose(window)); }
 }  // end namespace TTD

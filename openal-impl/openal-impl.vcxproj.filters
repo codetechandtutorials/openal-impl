@@ -47,7 +47,7 @@
     <ClInclude Include="MainLoop\MainLoop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="modes\TerminalTopDown.h">
+    <ClInclude Include="modes\TopDown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
