@@ -6,9 +6,12 @@ This is a sample C++ implementation of OpenAL based on a set of video tutorials 
 - [vid1 - sound effects](https://youtu.be/kWQM1iQ1W0E)
 - [vid2 - streaming music](https://youtu.be/pYK8XZHV74s)
 - [vid3 - adding a loop](https://youtu.be/3u866ODW3j8)
+- [vid4 - distance and direction](https://youtu.be/fG2veGWNPJY)
 
 ## dependencies
 
 - libsndfile
 - openal-soft
 - mattearly/MainLoop (submoduled)
+- glad
+- glfw3
