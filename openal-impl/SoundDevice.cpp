@@ -64,7 +64,7 @@ void SoundDevice::SetAttunation(int key)
 	if (key < 0xD001 || key > 0xD006)
 		throw("bad attunation key");
 
-	alListeneri(AL_DISTANCE_MODEL, key);
+	alDistanceModel(key);
 }
 
 /// <summary>
