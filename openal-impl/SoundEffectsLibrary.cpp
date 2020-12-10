@@ -142,7 +142,7 @@ SoundEffectsLibrary::SoundEffectsLibrary()
 /// </summary>
 SoundEffectsLibrary::~SoundEffectsLibrary()
 {
-	alDeleteBuffers(p_SoundEffectBuffers.size(), p_SoundEffectBuffers.data());
+	alDeleteBuffers((ALsizei)p_SoundEffectBuffers.size(), p_SoundEffectBuffers.data());
 
 	p_SoundEffectBuffers.clear();
 }

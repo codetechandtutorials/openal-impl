@@ -146,6 +146,7 @@
     <ClCompile Include="SoundEffectsPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OpenALErrorCheck.h" />
     <ClInclude Include="MainLoop\MainLoop.h" />
     <ClInclude Include="modes\TopDown.h" />
     <ClInclude Include="MusicBuffer.h" />

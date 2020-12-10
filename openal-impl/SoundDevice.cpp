@@ -2,6 +2,7 @@
 #include <AL\al.h>
 #include <stdio.h>
 #include <vector>
+#include "OpenALErrorCheck.h"
 
 static SoundDevice* _instance = nullptr;
 
@@ -26,6 +27,7 @@ void SoundDevice::Init()
 void SoundDevice::GetLocation(float& x, float& y, float& z)
 {
 	alGetListener3f(AL_POSITION, &x, &y, &z);
+	AL_CheckAndThrow();
 }
 
 /// <summary>
@@ -35,6 +37,7 @@ void SoundDevice::GetLocation(float& x, float& y, float& z)
 void SoundDevice::GetOrientation(float& ori)
 {
 	alGetListenerfv(AL_ORIENTATION, &ori);
+	AL_CheckAndThrow();
 }
 
 /// <summary>
@@ -45,6 +48,7 @@ float SoundDevice::GetGain()
 {
 	float curr_gain;
 	alGetListenerf(AL_GAIN, &curr_gain);
+	AL_CheckAndThrow();
 	return curr_gain;
 }
 
@@ -65,6 +69,7 @@ void SoundDevice::SetAttunation(int key)
 		throw("bad attunation key");
 
 	alDistanceModel(key);
+	AL_CheckAndThrow();
 }
 
 /// <summary>
@@ -76,6 +81,7 @@ void SoundDevice::SetAttunation(int key)
 void SoundDevice::SetLocation(const float& x, const float& y, const float& z)
 {
 	alListener3f(AL_POSITION, x, y, z);
+	AL_CheckAndThrow();
 }
 
 /// <summary>
@@ -97,6 +103,7 @@ void SoundDevice::SetOrientation(const float& atx, const float& aty, const float
 	ori.push_back(upy);
 	ori.push_back(upz);
 	alListenerfv(AL_ORIENTATION, ori.data());
+	AL_CheckAndThrow();
 }
 
 /// <summary>
@@ -113,6 +120,7 @@ void SoundDevice::SetGain(const float& val)
 		newVol = 5.f;
 
 	alListenerf(AL_GAIN, newVol);
+	AL_CheckAndThrow();
 }
 
 SoundDevice::SoundDevice()

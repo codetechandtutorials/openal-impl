@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <AL\alext.h>
 #include <malloc.h>
+#include "OpenALErrorCheck.h"
 
 void MusicBuffer::Play()
 {
@@ -42,16 +43,19 @@ void MusicBuffer::Play()
 void MusicBuffer::Pause()
 {
 	alSourcePause(p_Source);
+	AL_CheckAndThrow();
 }
 
 void MusicBuffer::Stop()
 {
 	alSourceStop(p_Source);
+	AL_CheckAndThrow();
 }
 
 void MusicBuffer::Resume()
 {
 	alSourcePlay(p_Source);
+	AL_CheckAndThrow();
 }
 
 void MusicBuffer::UpdateBufferStream()
@@ -59,14 +63,11 @@ void MusicBuffer::UpdateBufferStream()
 	ALint processed, state;
 
 	// clear error 
-	alGetError();
+	//alGetError();
 	/* Get relevant source info */
 	alGetSourcei(p_Source, AL_SOURCE_STATE, &state);
 	alGetSourcei(p_Source, AL_BUFFERS_PROCESSED, &processed);
-	if (alGetError() != AL_NO_ERROR)
-	{
-		throw("error checking music source state");
-	}
+	AL_CheckAndThrow();
 
 	/* Unqueue and handle each processed buffer */
 	while (processed > 0)
@@ -100,14 +101,12 @@ void MusicBuffer::UpdateBufferStream()
 
 		/* If no buffers are queued, playback is finished */
 		alGetSourcei(p_Source, AL_BUFFERS_QUEUED, &queued);
+		AL_CheckAndThrow();
 		if (queued == 0)
 			return;
 
 		alSourcePlay(p_Source);
-		if (alGetError() != AL_NO_ERROR)
-		{
-			throw("error restarting music playback");
-		}
+		AL_CheckAndThrow();
 	}
 
 }
@@ -121,6 +120,7 @@ bool MusicBuffer::isPlaying()
 {
 	ALint state;
 	alGetSourcei(p_Source, AL_SOURCE_STATE, &state);
+	AL_CheckAndThrow();
 	return (state == AL_PLAYING);
 }
 
@@ -130,6 +130,7 @@ void MusicBuffer::SetGain(const float& val)
 	if (newval < 0)
 		newval = 0;
 	alSourcef(p_Source, AL_GAIN, val);
+	AL_CheckAndThrow();
 }
 
 MusicBuffer::MusicBuffer(const char* filename)
@@ -169,20 +170,14 @@ MusicBuffer::MusicBuffer(const char* filename)
 
 	frame_size = ((size_t)BUFFER_SAMPLES * (size_t)p_Sfinfo.channels) * sizeof(short);
 	p_Membuf = static_cast<short*>(malloc(frame_size));
-
 }
 
 MusicBuffer::~MusicBuffer()
 {
 	alDeleteSources(1, &p_Source);
-
 	if (p_SndFile)
 		sf_close(p_SndFile);
-
 	p_SndFile = nullptr;
-
 	free(p_Membuf);
-
 	alDeleteBuffers(NUM_BUFFERS, p_Buffers);
-
 }
